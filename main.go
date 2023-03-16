@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 )
 
 const MaxAlienMoves = 10000
@@ -59,17 +60,10 @@ func main() {
 			return true
 		})
 
-		for _, alien := range invaders {
-			if alien.IsTrapped {
-				trappedAliens++
-				continue
-			}
-
-			if err := alien.Move(); err != nil {
-				log.Printf("Failed to move Alien: %s", err)
-			}
-		}
+		trappedAliens += moveAliens(invaders)
 	}
+
+	log.Println("All Aliens have been trapped or destroyed")
 
 	printWorld()
 }
@@ -123,6 +117,31 @@ func invadeCities() ([]*Alien, error) {
 	}
 
 	return invaders, nil
+}
+
+func moveAliens(invaders []*Alien) int {
+	var trappedAliens int
+	var wg sync.WaitGroup
+
+	for _, alien := range invaders {
+		wg.Add(1)
+		go func(alien *Alien) {
+			defer wg.Done()
+
+			if alien.IsTrapped {
+				trappedAliens++
+				return
+			}
+
+			if err := alien.Move(); err != nil {
+				log.Printf("Failed to move Alien: %s", err)
+			}
+		}(alien)
+	}
+
+	wg.Wait()
+
+	return trappedAliens
 }
 
 func printWorld() {
