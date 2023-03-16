@@ -92,16 +92,30 @@ func buildWorld() error {
 }
 
 func invadeCities() ([]*Alien, error) {
+	var wg sync.WaitGroup
+	var errs int
+
 	invaders := make([]*Alien, *aliens)
 	for i := 0; i < *aliens; i++ {
-		invader := NewAlien(i)
-		if city, err := invader.InvadeRandomEmptyCity(); err != nil {
-			return nil, fmt.Errorf("Alien %d failed to invade a city: %s", i, err)
-		} else {
-			log.Printf("Alien %d has invaded %s!", invader.ID, city.Name)
-		}
+		wg.Add(1)
+		go func(alienID int) {
+			defer wg.Done()
 
-		invaders[i] = invader
+			invader := NewAlien(alienID)
+			if city, err := invader.InvadeRandomEmptyCity(); err != nil {
+				log.Printf("Alien %d failed to invade a city: %s", alienID, err)
+				errs++
+			} else {
+				invaders[alienID] = invader
+				log.Printf("Alien %d has invaded %s!", invader.ID, city.Name)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	if errs > 0 {
+		return nil, errors.New("There are not enough Cities for all Aliens to invade")
 	}
 
 	return invaders, nil
