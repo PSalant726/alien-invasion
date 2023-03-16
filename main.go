@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 const MaxAlienMoves = 10000
@@ -68,6 +69,8 @@ func main() {
 			}
 		}
 	}
+
+	printWorld()
 }
 
 func validateFlags() error {
@@ -119,4 +122,32 @@ func invadeCities() ([]*Alien, error) {
 	}
 
 	return invaders, nil
+}
+
+func printWorld() {
+	log.Println("The current state of the world is:")
+
+	for cityName, city := range world {
+		cityOut := cityName + " "
+
+		for i, neighbor := range city.NeighboringCities {
+			if neighbor != nil {
+				var direction string
+				switch i {
+				case 0:
+					direction = "north"
+				case 1:
+					direction = "south"
+				case 2:
+					direction = "east"
+				case 3:
+					direction = "west"
+				}
+
+				cityOut += fmt.Sprintf("%s=%s ", direction, neighbor.Name)
+			}
+		}
+
+		fmt.Println(strings.TrimSpace(cityOut))
+	}
 }
