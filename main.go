@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 )
@@ -21,6 +23,7 @@ var (
 		"\tCity5 east=City1",
 	)
 
+	world = make(map[string]*City)
 )
 
 func main() {
@@ -29,6 +32,9 @@ func main() {
 		log.Fatalf("Invalid option value provided: %s", err)
 	}
 
+	if err := buildWorld(); err != nil {
+		log.Fatalf("Invalid city map provided: %s", err)
+	}
 }
 
 func validateFlags() error {
@@ -43,3 +49,25 @@ func validateFlags() error {
 	return nil
 }
 
+func buildWorld() error {
+	input, err := os.Open(*worldMap)
+	if err != nil {
+		return fmt.Errorf("Failed to open input file: %s", err)
+	}
+	defer input.Close()
+
+	mapScanner := bufio.NewScanner(input)
+	mapScanner.Split(bufio.ScanLines)
+
+	for mapScanner.Scan() {
+		err := EstablishCity(world, mapScanner.Text())
+		if err != nil {
+			return fmt.Errorf("Failed to parse city details: %s", err)
+		}
+	}
+	if err := mapScanner.Err(); err != nil {
+		return fmt.Errorf("Failed to parse world map: %s", err)
+	}
+
+	return nil
+}
