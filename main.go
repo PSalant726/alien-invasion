@@ -26,7 +26,7 @@ var (
 		"\tCity5 east=City1",
 	)
 
-	world = make(map[string]*City)
+	world = NewWorld()
 )
 
 func main() {
@@ -46,7 +46,7 @@ func main() {
 
 	trappedAliens := 1 // If only a single Alien remains, then they have nobody to fight!
 	for trappedAliens < *aliens {
-		for _, city := range world {
+		world.Range(func(_ string, city *City) bool {
 			if len(city.Residents) > 1 {
 				city.Destroy()
 				log.Printf(
@@ -56,7 +56,8 @@ func main() {
 					city.Residents[1].ID,
 				)
 			}
-		}
+			return true
+		})
 
 		for _, alien := range invaders {
 			if alien.IsTrapped {
@@ -96,7 +97,7 @@ func buildWorld() error {
 	mapScanner.Split(bufio.ScanLines)
 
 	for mapScanner.Scan() {
-		err := EstablishCity(world, mapScanner.Text())
+		err := world.EstablishCity(mapScanner.Text())
 		if err != nil {
 			return fmt.Errorf("Failed to parse city details: %s", err)
 		}
@@ -127,7 +128,7 @@ func invadeCities() ([]*Alien, error) {
 func printWorld() {
 	log.Println("The current state of the world is:")
 
-	for cityName, city := range world {
+	world.Range(func(cityName string, city *City) bool {
 		cityOut := cityName + " "
 
 		for i, neighbor := range city.NeighboringCities {
@@ -149,5 +150,6 @@ func printWorld() {
 		}
 
 		fmt.Println(strings.TrimSpace(cityOut))
-	}
+		return true
+	})
 }

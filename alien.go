@@ -19,12 +19,14 @@ func NewAlien(id int) *Alien {
 
 func (a *Alien) InvadeRandomEmptyCity() (*City, error) {
 	var startingCity *City
-	for _, city := range world {
+	world.Range(func(_ string, city *City) bool {
 		if len(city.Residents) == 0 {
 			startingCity = city
-			break
+			return false
 		}
-	}
+
+		return true
+	})
 
 	if startingCity == nil {
 		return nil, errors.New("Nowhere left to invade, all cities are occupied")
