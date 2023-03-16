@@ -9,6 +9,8 @@ import (
 	"os"
 )
 
+const MaxAlienMoves = 10000
+
 var (
 	aliens   = flag.Int("aliens", 2, "The amount of violent Alien invaders to unleash upon the world.")
 	worldMap = flag.String("world-map", "", "The path to the input file.\n\n"+
@@ -39,6 +41,20 @@ func main() {
 	invaders, err := invadeCities()
 	if err != nil {
 		log.Fatalf("Alien invasion failed: %s", err)
+	}
+
+	trappedAliens := 1 // If only a single Alien remains, then they have nobody to fight!
+	for trappedAliens < *aliens {
+		for _, alien := range invaders {
+			if alien.IsTrapped {
+				trappedAliens++
+				continue
+			}
+
+			if err := alien.Move(); err != nil {
+				log.Printf("Failed to move Alien: %s", err)
+			}
+		}
 	}
 }
 

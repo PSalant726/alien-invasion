@@ -107,3 +107,12 @@ func EstablishCity(world map[string]*City, line string) error {
 	world[city.Name] = city
 	return nil
 }
+
+// Evict removes the specified Alien from the list of the City's residents.
+func (c *City) Evict(alien *Alien) {
+	for i, resident := range c.Residents {
+		if resident == alien {
+			c.Residents = append(c.Residents[:i], c.Residents[i+1:]...)
+		}
+	}
+}
