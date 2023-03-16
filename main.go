@@ -35,6 +35,11 @@ func main() {
 	if err := buildWorld(); err != nil {
 		log.Fatalf("Invalid city map provided: %s", err)
 	}
+
+	invaders, err := invadeCities()
+	if err != nil {
+		log.Fatalf("Alien invasion failed: %s", err)
+	}
 }
 
 func validateFlags() error {
@@ -70,4 +75,20 @@ func buildWorld() error {
 	}
 
 	return nil
+}
+
+func invadeCities() ([]*Alien, error) {
+	invaders := make([]*Alien, *aliens)
+	for i := 0; i < *aliens; i++ {
+		invader := NewAlien(i)
+		if city, err := invader.InvadeRandomEmptyCity(); err != nil {
+			return nil, fmt.Errorf("Alien %d failed to invade a city: %s", i, err)
+		} else {
+			log.Printf("Alien %d has invaded %s!", invader.ID, city.Name)
+		}
+
+		invaders[i] = invader
+	}
+
+	return invaders, nil
 }

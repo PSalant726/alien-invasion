@@ -8,6 +8,7 @@ import (
 
 type City struct {
 	Name      string
+	Residents []*Alien
 
 	// A city may have at most four neighboring cities. They
 	// are stored here in order of North, South, East, West.
@@ -17,6 +18,7 @@ type City struct {
 func NewCity(name string) *City {
 	return &City{
 		Name:              name,
+		Residents:         []*Alien{},
 		NeighboringCities: make([]*City, 4),
 	}
 }
