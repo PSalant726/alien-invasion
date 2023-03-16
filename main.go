@@ -45,6 +45,18 @@ func main() {
 
 	trappedAliens := 1 // If only a single Alien remains, then they have nobody to fight!
 	for trappedAliens < *aliens {
+		for _, city := range world {
+			if len(city.Residents) > 1 {
+				city.Destroy()
+				log.Printf(
+					"%s has been destroyed by Alien %d and Alien %d!",
+					city.Name,
+					city.Residents[0].ID,
+					city.Residents[1].ID,
+				)
+			}
+		}
+
 		for _, alien := range invaders {
 			if alien.IsTrapped {
 				trappedAliens++

@@ -108,6 +108,24 @@ func EstablishCity(world map[string]*City, line string) error {
 	return nil
 }
 
+func (c *City) Destroy() {
+	for _, alien := range c.Residents {
+		alien.IsTrapped = true
+	}
+
+	for _, neighbor := range c.NeighboringCities {
+		if neighbor != nil {
+			for i, city := range neighbor.NeighboringCities {
+				if city != nil && city.Name == c.Name {
+					neighbor.NeighboringCities[i] = nil
+				}
+			}
+		}
+	}
+
+	delete(world, c.Name)
+}
+
 // Evict removes the specified Alien from the list of the City's residents.
 func (c *City) Evict(alien *Alien) {
 	for i, resident := range c.Residents {
