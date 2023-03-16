@@ -47,19 +47,7 @@ func main() {
 
 	trappedAliens := 1 // If only a single Alien remains, then they have nobody to fight!
 	for trappedAliens < *aliens {
-		world.Range(func(_ string, city *City) bool {
-			if len(city.Residents) > 1 {
-				city.Destroy()
-				log.Printf(
-					"%s has been destroyed by Alien %d and Alien %d!",
-					city.Name,
-					city.Residents[0].ID,
-					city.Residents[1].ID,
-				)
-			}
-			return true
-		})
-
+		destroyCities()
 		trappedAliens += moveAliens(invaders)
 	}
 
@@ -117,6 +105,30 @@ func invadeCities() ([]*Alien, error) {
 	}
 
 	return invaders, nil
+}
+
+func destroyCities() {
+	var wg sync.WaitGroup
+	world.Range(func(_ string, city *City) bool {
+		wg.Add(1)
+		go func(city *City) {
+			defer wg.Done()
+
+			if len(city.Residents) > 1 {
+				city.Destroy()
+				log.Printf(
+					"%s has been destroyed by Alien %d and Alien %d!",
+					city.Name,
+					city.Residents[0].ID,
+					city.Residents[1].ID,
+				)
+			}
+		}(city)
+
+		return true
+	})
+
+	wg.Wait()
 }
 
 func moveAliens(invaders []*Alien) int {
