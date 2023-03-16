@@ -17,7 +17,7 @@ func NewCity(name string) *City {
 	}
 }
 
-func (c *City) Destroy() {
+func (c *City) Destroy(fromWorld *World) {
 	for _, alien := range c.Residents {
 		alien.IsTrapped = true
 	}
@@ -32,7 +32,7 @@ func (c *City) Destroy() {
 		}
 	}
 
-	world.Delete(c)
+	fromWorld.Delete(c)
 }
 
 // Evict removes the specified Alien from the list of the City's residents.

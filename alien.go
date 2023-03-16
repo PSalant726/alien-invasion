@@ -17,9 +17,9 @@ func NewAlien(id int) *Alien {
 	return &Alien{ID: id}
 }
 
-func (a *Alien) InvadeRandomEmptyCity() (*City, error) {
+func (a *Alien) InvadeRandomEmptyCity(inWorld *World) (*City, error) {
 	var startingCity *City
-	world.Range(func(_ string, city *City) bool {
+	inWorld.Range(func(_ string, city *City) bool {
 		if len(city.Residents) == 0 {
 			startingCity = city
 			return false

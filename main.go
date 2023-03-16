@@ -26,8 +26,6 @@ var (
 		"\tCity4 west=City1\n"+
 		"\tCity5 east=City1",
 	)
-
-	world = NewWorld()
 )
 
 func main() {
@@ -36,24 +34,25 @@ func main() {
 		log.Fatalf("Invalid option value provided: %s", err)
 	}
 
-	if err := buildWorld(); err != nil {
+	world, err := buildWorld()
+	if err != nil {
 		log.Fatalf("Invalid city map provided: %s", err)
 	}
 
-	invaders, err := invadeCities()
+	invaders, err := invadeCities(world)
 	if err != nil {
 		log.Fatalf("Alien invasion failed: %s", err)
 	}
 
 	trappedAliens := 1 // If only a single Alien remains, then they have nobody to fight!
 	for trappedAliens < *aliens {
-		destroyCities()
+		destroyCities(world)
 		trappedAliens += moveAliens(invaders)
 	}
 
 	log.Println("All Aliens have been trapped or destroyed")
 
-	printWorld()
+	printWorld(world)
 }
 
 func validateFlags() error {
@@ -68,30 +67,31 @@ func validateFlags() error {
 	return nil
 }
 
-func buildWorld() error {
+func buildWorld() (*World, error) {
 	input, err := os.Open(*worldMap)
 	if err != nil {
-		return fmt.Errorf("Failed to open input file: %s", err)
+		return nil, fmt.Errorf("Failed to open input file: %s", err)
 	}
 	defer input.Close()
 
 	mapScanner := bufio.NewScanner(input)
 	mapScanner.Split(bufio.ScanLines)
 
+	world := NewWorld()
 	for mapScanner.Scan() {
 		err := world.EstablishCity(mapScanner.Text())
 		if err != nil {
-			return fmt.Errorf("Failed to parse city details: %s", err)
+			return nil, fmt.Errorf("Failed to parse city details: %s", err)
 		}
 	}
 	if err := mapScanner.Err(); err != nil {
-		return fmt.Errorf("Failed to parse world map: %s", err)
+		return nil, fmt.Errorf("Failed to parse world map: %s", err)
 	}
 
-	return nil
+	return world, nil
 }
 
-func invadeCities() ([]*Alien, error) {
+func invadeCities(inWorld *World) ([]*Alien, error) {
 	var wg sync.WaitGroup
 	var errs int
 
@@ -102,7 +102,7 @@ func invadeCities() ([]*Alien, error) {
 			defer wg.Done()
 
 			invader := NewAlien(alienID)
-			if city, err := invader.InvadeRandomEmptyCity(); err != nil {
+			if city, err := invader.InvadeRandomEmptyCity(inWorld); err != nil {
 				log.Printf("Alien %d failed to invade a city: %s", alienID, err)
 				errs++
 			} else {
@@ -121,15 +121,15 @@ func invadeCities() ([]*Alien, error) {
 	return invaders, nil
 }
 
-func destroyCities() {
+func destroyCities(inWorld *World) {
 	var wg sync.WaitGroup
-	world.Range(func(_ string, city *City) bool {
+	inWorld.Range(func(_ string, city *City) bool {
 		wg.Add(1)
 		go func(city *City) {
 			defer wg.Done()
 
 			if len(city.Residents) > 1 {
-				city.Destroy()
+				city.Destroy(inWorld)
 				log.Printf(
 					"%s has been destroyed by Alien %d and Alien %d!",
 					city.Name,
@@ -170,7 +170,7 @@ func moveAliens(invaders []*Alien) int {
 	return trappedAliens
 }
 
-func printWorld() {
+func printWorld(world *World) {
 	log.Println("The current state of the world is:")
 
 	world.Range(func(cityName string, city *City) bool {
