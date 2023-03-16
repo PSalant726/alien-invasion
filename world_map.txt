@@ -1,0 +1,14 @@
+Bar south=Central west=Bee
+Baz east=Central north=Bee
+Bee east=Bar south=Baz
+Berlin north=London east=Dubai
+Central north=Bar south=Qu-ux east=Foo west=Baz
+Chicago north=LA
+Dubai east=Tokyo west=Berlin
+Foo west=Central
+Island
+LA south=Chicago east=NYC
+London south=Berlin west=NYC
+NYC north=Qu-ux east=London west=LA
+Qu-ux north=Central south=NYC
+Tokyo west=Dubai
